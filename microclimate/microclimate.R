@@ -2,6 +2,7 @@
 
 # call header
 source("header.R")
+
 #' Step 1: Convert Hobo file to .csv using HoboWare Software.
 #' Step 2: Load into R.
 
@@ -77,10 +78,12 @@ temp_plot = ggplot(data = plots,
           axis.title.x = element_blank())
 temp_plot
 
-ggsave("objects/microclimate/temp.jpeg", plot = temp_plot, device = "jpeg", width = 8, height = 2, units = "in", dpi = 300)   
-ggsave("objects/microclimate/RH.jpeg", plot = RH_plot, device = "jpeg", width = 8, height = 2, units = "in", dpi = 300)   
-ggsave("objects/microclimate/vpd.jpeg", plot = vpd_plot, device = "jpeg", width = 8, height = 2, units = "in", dpi = 300)   
+ggsave("lfe_objects/microclimate/temp.jpeg", plot = temp_plot, device = "jpeg", width = 8, height = 2, units = "in", dpi = 300)   
+ggsave("lfe_objects/microclimate/RH.jpeg", plot = RH_plot, device = "jpeg", width = 8, height = 2, units = "in", dpi = 300)   
+ggsave("lfe_objects/microclimate/vpd.jpeg", plot = vpd_plot, device = "jpeg", width = 8, height = 2, units = "in", dpi = 300)   
 
+## loading in exported .csvs from HOBOware
 
+test = read_csv("lfe_data/microclimate/Sept_revisits/OSMP_1_plot_22.csv")
     
     
