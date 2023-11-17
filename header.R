@@ -9,5 +9,16 @@ graphics.off()
 source("functions.R")
 
 # libraries
+library(dplyr)
 library(ggplot2)
+library(ggpubr)
+library(lubridate)
+library(plyr)
 library(readr)
+library(data.table)
+library(photobiology)
+library(grid)
+library(PerformanceAnalytics)
+library(corrplot)
+library(psych)
+
