@@ -71,7 +71,7 @@ physcia = spectra |>
     dplyr::filter(species == "Physcia_stellaris",
                   type == "absorbance")
 
-physcia_plot = ggplot(data = physcia, aes(x = wavelength, y = reflectance_absorbance, color = dry_wet)) +
+physcia_plot1 = ggplot(data = physcia, aes(x = wavelength, y = reflectance_absorbance, color = dry_wet)) +
     theme_bw() +
     annotation_custom(g, xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf) + 
     geom_line(size = 1.25) +
@@ -82,7 +82,7 @@ physcia_plot = ggplot(data = physcia, aes(x = wavelength, y = reflectance_absorb
         axis.title = element_text(size = 30),
         legend.position = "none"
     )
-physcia_plot
+physcia_plot1
 
 unique(spectra$species)
 
