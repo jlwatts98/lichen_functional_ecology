@@ -3,21 +3,35 @@
 # header
 source("header.R")
 
+folders = list.dirs("lfe_data/functional_traits/reflect/")
+folders = folders[-c(1)]
+folders
 
-filelist = list.files(path = "lfe_data/reflectance_spectroscopy/test", pattern = "*.txt")
-filelist = paste0("lfe_data/reflectance_spectroscopy/test/", filelist)
-filelist
-#assuming tab separated values with a header    
+filelist = list.files(path = folders[3], 
+                      pattern = "*.txt")
+filelist = paste0(folders[3], "/", filelist)
+filelist 
 datalist = lapply(filelist, function(x)as.data.frame(fread(x, header=F, sep = "\t")))
-lichen_spectra = do.call("rbind", datalist) %>%
-    rename(
+lichen_spectra = do.call("rbind", datalist) |>
+   dplyr::rename(
         wavelength = V1,
         reflectance = V2
-    ) %>%
-    mutate(
-        sample = as.factor(rep(1:length(datalist), each = nrow(datalist[[1]])))) %>%
-    filter(wavelength > 250 & wavelength < 800)
+    ) |>
+    dplyr::filter(wavelength > 250 & wavelength < 800)
+# add id number
+lichen_spectra$num = rep(1:length(datalist), each = 1607)
 
+# load in spectra identifier df
+reflect_ids = read.csv("lfe_data/functional_traits/reflect_ids.csv") |>
+    dplyr::rename(num = Reflectance.Spectrometry.Nums,
+                  collection = Collection.Num,
+                  plot = Plot.Num,
+                  species = Species) |>
+    dplyr::filter(Folder == sub('.*/', '', folders[3]))
+reflect_ids$sample = paste0(tolower(substr(reflect_ids$species,1,3)), 
+          substr(sub('.* ', '', reflect_ids$species), 1, 3), "_",reflect_ids$plot, "_", reflect_ids$collection)
+str(reflect_ids)
+lichen_spectra = merge(lichen_spectra, reflect_ids, by = "num")
 
 gradient <- t(w_length2rgb(250:800))
 g <- rasterGrob(gradient, width = unit(1, "npc"), height = unit(1, "npc"), interpolate = TRUE) 
@@ -34,7 +48,7 @@ test = ggplot(data = lichen_spectra, aes(x = wavelength, y = reflectance, color 
         legend.position = "none"
     )
 test
-ggsave("lfe_objects/reflectance_spectroscopy/test.jpeg", 
+ggsave("lfe_objects/functional_traits/test.jpeg", 
        plot = test, 
        device = "jpeg", 
        width = 8, 
@@ -42,7 +56,7 @@ ggsave("lfe_objects/reflectance_spectroscopy/test.jpeg",
        units = "in", 
        dpi = 600)   
 
-spectra = read.csv("lfe_data/reflectance_spectroscopy/spectrometry_test.csv")
+spectra = read.csv("lfe_data/functional_traits/spectrometry_test.csv")
 
 spectra = spectra |>
     dplyr::rename(reflectance_absorbance = relfectance_absorbance) |>
@@ -64,7 +78,7 @@ physcia_plot = ggplot(data = physcia, aes(x = wavelength, y = reflectance_absorb
         legend.position = "none"
     )
 physcia_plot
-ggsave("lfe_objects/reflectance_spectroscopy/physcia_stellaris_reflect.jpeg", plot = physcia_plot, device = "jpeg", width = 8, height = 6, units = "in", dpi = 300)   
+ggsave("lfe_objects/functional_traits/physcia_stellaris_reflect.jpeg", plot = physcia_plot, device = "jpeg", width = 8, height = 6, units = "in", dpi = 300)   
 
 
 physcia = spectra |>
@@ -103,7 +117,7 @@ melanohalea_plot = ggplot(data = melanohalea, aes(x = wavelength, y = reflectanc
         legend.position = "none"
     )
 melanohalea_plot
-ggsave("lfe_objects/reflectance_spectroscopy/Melanohalea_reflect.jpeg", 
+ggsave("lfe_objects/functional_traits/Melanohalea_reflect.jpeg", 
        plot = melanohalea_plot, 
        device = "jpeg", 
        width = 8, 
@@ -129,7 +143,7 @@ dimelaena_plot = ggplot(data = dimelaena, aes(x = wavelength, y = reflectance_ab
     )
 dimelaena_plot
 
-ggsave("lfe_objects/reflectance_spectroscopy/dimelaena_reflect.jpeg", 
+ggsave("lfe_objects/functional_traits/dimelaena_reflect.jpeg", 
        plot = dimelaena_plot, 
        device = "jpeg", 
        width = 8, 
@@ -154,7 +168,7 @@ calicium_plot = ggplot(data = calicium, aes(x = wavelength, y = reflectance_abso
         legend.position = "none"
     )
 calicium_plot
-ggsave("lfe_objects/reflectance_spectroscopy/Calicium_reflect.jpeg", 
+ggsave("lfe_objects/functional_traits/Calicium_reflect.jpeg", 
        plot = calicium_plot, device = "jpeg", 
        width = 8, height = 6, units = "in", dpi = 600)   
 
@@ -201,7 +215,7 @@ refl_plot = ggarrange(physcia_plot, melanohalea_plot,
                     font.label = list(size = 30))
 refl_plot
 
-ggsave("lfe_objects/reflectance_spectroscopy/foursp.jpeg", 
+ggsave("lfe_objects/functional_traits/foursp.jpeg", 
        plot = refl_plot, device = "jpeg", 
        width = 16, height = 12, units = "in", dpi = 600) 
 
@@ -218,7 +232,7 @@ plot_chars = read_csv("lfe_objects/OSMP_plots/plot_chars_full.csv")
 # merge dfs
 df = merge(colxn, plot_chars, by = "plot")
 # load in F soredica reflectance spectra
-f_sore_refl = read_csv("lfe_data/reflectance_spectroscopy/F_soredica_reflectance.csv")
+f_sore_refl = read_csv("lfe_data/functional_traits/F_soredica_reflectance.csv")
 
 f_sore_red = f_sore_refl |>
     dplyr::filter(probe_distance == "far",
@@ -265,7 +279,7 @@ f_sore_plot = f_sore_all |>
     )
 f_sore_plot
 
-ggsave("lfe_objects/reflectance_spectroscopy/f_sore_dry.jpeg", 
+ggsave("lfe_objects/functional_traits/f_sore_dry.jpeg", 
        plot = f_sore_plot, device = "jpeg", 
        width = 8, height = 6, units = "in", dpi = 600) 
 
@@ -293,9 +307,10 @@ f_sore_final = ggarrange(f_sore_plot,f_sore_canopy_cover_UV,
                            ncol = 2, nrow = 1)
 f_sore_final
 
-ggsave("lfe_objects/reflectance_spectroscopy/f_sore_final.jpeg",
+ggsave("lfe_objects/functional_traits/f_sore_final.jpeg",
        f_sore_final,
        width = 7,
        height = 3,
        units = "in",
        dpi = 600)
+

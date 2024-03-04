@@ -12,12 +12,15 @@ vpd = function(
 northing = function(
         aspect
 ){
+    if (is.na(aspect)) {
+        return(NA)
+    }
     if (aspect > 180) {
         northing = aspect - 270
     } else
     {
         northing = 90 - aspect
-    }
+    } 
     return(northing)
 }
 
@@ -91,7 +94,7 @@ is_daytime <- function(timestamp, sunrise_times, sunset_times) {
 # Create a vector indicating whether it's daytime or nighttime
 #daytime_indicator <- sapply(1:length(timestamps), function(i) {
 #    is_daytime(timestamps[i], sunrise_times, sunset_times)
-})
+#})
 
 # Print the result
 #print(daytime_indicator)

@@ -1,68 +1,15 @@
 ##### Rare Lichen Species Distribution Models #####
-# set working directory
-setwd("~/R/lichen_spectra")
 
-
+# source header
+source("header.R")
 # resources
 # https://cds.climate.copernicus.eu/cdsapp#!/dataset/sis-biodiversity-cmip5-global?tab=overview
-##### Reading in Geology Layers #####
-library(raster)
-library(rgdal)
-library(sf)
-library(terra)
-library(stars)
-
-# https://swregap.org/data/geology/
-
-CO_GEO = read_sf("CO_geology/swgeology/swgeology.shp")
-CO_GEO_rast = st_rasterize(CO_GEO)
-plot(CO_GEO_rast)
-
-# https://mrdata.usgs.gov/geology/state/
-
-library(sf)
-library(fasterize)
-US_geology = read_sf("CO_geology/USGS_Shapefiles/SGMC_Geology.shp")
-class(US_geology)
-
-# reproject
-WGS = "+proj=longlat +datum=WGS84 +no_defs"
-
-#geo_reproj = st_transform(US_geology,
-                        # crs = WGS)
-
-# convert shapefile to raster
-rast = fasterize::raster(US_geology, res = 1000)
-
-GEO_rast = fasterize(US_geology, rast, field = "RuleID",
-                     fun = "first")
-
-plot(GEO_rast)
-
-class(GEO_rast)
-
-clims[[1]]
-geo_project = projectRaster(GEO_rast, 
-                            res = 0.008928571, 
-                            crs = "+proj=lcc +lat_1=48 +lat_2=33 +lon_0=-100 +datum=WGS84",
-                            method = 'ngb',
-                            over = T)
-
-
-#WGS = "+proj=longlat +datum=WGS84 +no_defs"
-# reproject geology raster
-#library(proj4)
-#geo_reproj = projectRaster(GEO_rast, crs = WGS)
-#geo_reproj = projectRaster(from = GEO_rast, to = clims_crop[[1]])
-#geo_reproj = projectRaster(GEO_rast, crs = ('+proj=longlat'))
-
-#plot(GEO_rast)
 
 ##### Reading in DEMs #####
 library(terra)
 
-DEM_files = list.files(path = "CO_DEM", pattern = "\\.tif$")
-DEM_files = paste("CO_DEM/", DEM_files, sep = "")
+DEM_files = list.files(path = "lfe_data/SDMs/CO_DEM", pattern = "\\.tif$")
+DEM_files = paste("lfe_data/SDMs/CO_DEM/", DEM_files, sep = "")
 DEM = sprc(DEM_files)
 CO_DEM = merge(DEM)
 
@@ -70,14 +17,14 @@ plot(CO_DEM)
 
 # DEM for the entire world, lower resolution
 # https://www.ngdc.noaa.gov/mgg/global/relief/ETOPO2/ETOPO2v2-2006/ETOPO2v2c/netCDF/
-library(ncdf4)
-DEM = raster("CO_DEM/world/world.nc")
+
+DEM = raster("lfe_data/SDMs/CO_DEM/world/world.nc")
 plot(DEM)
 
 ##### Reading in Vegetation Type Data #####
 # https://forobs.jrc.ec.europa.eu/glc2000/data
 
-vegetation = raster("Vegetation/namerica/Bil/namerica_v2.bil")
+vegetation = raster("lfe_data/SDMs/Vegetation/namerica/Bil/namerica_v2.bil")
 plot(vegetation)
 cellStats(vegetation, stat = "min")
 cellStats(vegetation, stat = "max")
@@ -86,17 +33,17 @@ cellStats(vegetation, stat = "mean")
 
 ##### Reading in Climate Data #####
 
-clim_files = list.files(path = "climate", pattern = "\\.tif$")
+clim_files = list.files(path = "lfe_data/SDMs/climate", pattern = "\\.tif$")
 clim_files
-clim = paste("climate/", clim_files, sep = "")
+clim = paste("lfe_data/SDMs/climate/", clim_files, sep = "")
 bios = stack(clim)
 
-clim_files = list.files(path = "climate", pattern = "\\.nc$")
-clim = paste("climate/", clim_files, sep = "")
+clim_files = list.files(path = "lfe_data/SDMs/climate", pattern = "\\.nc$")
+clim = paste("lfe_data/SDMs/climate/", clim_files, sep = "")
 clims = stack(clim)
 
-envirem = list.files(path = "envirem", pattern = "\\.tif$")
-envirem = paste("envirem/", envirem, sep = "")
+envirem = list.files(path = "lfe_data/SDMs/envirem", pattern = "\\.tif$")
+envirem = paste("lfe_data/SDMs/envirem/", envirem, sep = "")
 envirem = stack(envirem)
 
 plot(clims[[1]])
@@ -126,6 +73,56 @@ hist(CO_veg_vec)
 points(-106.777200, 40.630170)
 points(-105.634592, 40.078678)
 points(-107.45, 37.87)
+
+
+##### Reading in Geology Layers #####
+
+
+# https://swregap.org/data/geology/
+
+CO_GEO = read_sf("lfe_data/SDMs/CO_geology/swgeology/swgeology.shp")
+CO_GEO_rast = st_rasterize(CO_GEO)
+plot(CO_GEO_rast)
+
+# https://mrdata.usgs.gov/geology/state/
+
+US_geology = read_sf("lfe_data/SDMs/CO_geology/USGS_Shapefiles/SGMC_Geology.shp")
+class(US_geology)
+unique(US_geology$GENERALIZE)
+
+# reproject
+#WGS = "+proj=longlat +datum=WGS84 +no_defs"
+
+#geo_reproj = st_transform(US_geology,
+                        # crs = WGS)
+
+# convert shapefile to raster
+#rast = fasterize(US_geology, raster = )
+
+
+#GEO_rast = fasterize(US_geology, rast, field = "RuleID",
+#                     fun = "first")
+
+#plot(GEO_rast)
+
+#class(GEO_rast)
+
+#clims[[1]]
+#geo_project = projectRaster(GEO_rast, 
+#                            res = 0.008928571, 
+#                            crs = "+proj=lcc +lat_1=48 +lat_2=33 +lon_0=-100 +datum=WGS84",
+#                            method = 'ngb',
+#                            over = T)
+
+
+#WGS = "+proj=longlat +datum=WGS84 +no_defs"
+# reproject geology raster
+#library(proj4)
+#geo_reproj = projectRaster(GEO_rast, crs = WGS)
+#geo_reproj = projectRaster(from = GEO_rast, to = clims_crop[[1]])
+#geo_reproj = projectRaster(GEO_rast, crs = ('+proj=longlat'))
+
+#plot(GEO_rast)
 
 
 ##### Standardize and Stack Raster data #####
@@ -173,9 +170,41 @@ all = stack(clims_crop, bios_crop, veg_crop_resamp, DEM_crop_resamp, envirem_cro
 
 ##### Assess autocorrelation and choose relevant variables #####
 
+##### National Forest Boundaries #####
+NF <- st_read(dsn = "lfe_data/SDMs/CO_NF/colorado-national-forest.shp")
+crs(NF)
+crs(all_red_crop[[1]])
+NF_reproj = st_transform(NF, crs = crs(all_red_crop[[1]]))
+crs(NF_reproj)
+NF_sp = sf::as_Spatial(NF_reproj$geometry)
+
+plot(NF_sp)
+# Convert colorado raster to points
+raster_points <- as.data.frame(rasterToPoints(all_red_crop[[1]]))
+stars_raster = st_as_stars(all_red_crop[[1]])
+
+
+# Convert points to sf object
+sf_points <- st_as_sf(raster_points, coords = c("x", "y"))
+
+# Set the projection
+st_crs(sf_points) <- st_crs(all_red_crop[[1]])
+
+# Convert points to raster cells
+sf_raster <- st_rasterize(sf_points, stars_raster)
+
+# Plot the resulting sf object
+plot(sf_raster)
+
+NF_cropped = st_intersection(shapefile, sf_raster)
+sf_use_s2(FALSE)
+crop_extent <- st_bbox(c(xmin = 37, xmax = 41, ymin = -109.046666, ymax = -102.046666), crs = st_crs(NF))
+NF_cropped = st_crop(NF, crop_extent)
+plot(NF_cropped)
+
 ##### Omphalora Arizonica #####
-##### Read in Occurrence Data #####
-omphalora_arizonica = readr::read_csv("occurrences/Omphalora_arizonica.csv") |>
+### Read in Occurrence Data ###
+omphalora_arizonica = readr::read_csv("lfe_data/SDMs/occurrences/Omphalora_arizonica.csv") |>
     dplyr::filter(!is.na(decimalLatitude)) |>
     dplyr::rename(lat = decimalLatitude,
                   lon = decimalLongitude)
@@ -242,6 +271,7 @@ cor_mat_red = cor(ompha_env_red)
 cor_mat_red
 
 # option to reduce more!
+
 
 ##### Run SDMs #####
 library(sdm)
@@ -313,12 +343,12 @@ m_ompha <- sdm(oc~.,
                n=10)
 
 
-predict_ompha = ensemble(m_ompha, newdata=all_red_crop, filename='ompha_test.img',
+predict_ompha = ensemble(m_ompha, newdata=all_red_crop, filename='lfe_objects/SDMs/ompha_test.img',
                        overwrite = T,
                        setting=list(method='weighted',
                                     stat='AUC'))
 
-writeRaster(predict_ompha, filename = "ompha_output.tif", overwrite=TRUE)
+writeRaster(predict_ompha, filename = "lfe_objects/SDMs/ompha_output.tif", overwrite=TRUE)
 plot(predict_ompha)
 points(omph_xy)
 
@@ -327,22 +357,18 @@ points(omph_xy)
 #sw = extent(-120, -102.046666, 31.3333, 42)
 #predict_SW = crop(predict, sw)
 
-jpeg(file="omphalora_arizonica_CO.jpeg", height = 5,
+jpeg(file="lfe_objects/SDMs/omphalora_arizonica_CO.jpeg", height = 5,
      width = 6, units = "in",
      res = 600)
-plot(predict_CO)
+plot(predict_ompha)
 dev.off()
 
-#jpeg(file="omphalora_arizonica.jpeg", height = 5,
-#     width = 7, units = "in",
-#     res = 600)
-#plot(predict_SW)
-#dev.off()
+levelplot(predict_ompha)
 
 
 ##### Circinaria rogeri #####
-##### Read in Occurrence Data #####
-circinaria_rogeri = readr::read_csv("occurrences/circinaria_rogeri.csv") |>
+### Read in Occurrence Data ###
+circinaria_rogeri = readr::read_csv("lfe_data/SDMs/occurrences/circinaria_rogeri.csv") |>
     dplyr::filter(!is.na(decimalLatitude)) |>
     dplyr::rename(lat = decimalLatitude,
                   lon = decimalLongitude)
@@ -437,21 +463,22 @@ m_circi <- sdm(oc~.,
                replicatin='boot',
                n=10)
 
-plot(all_red_crop[[1]])
+
 
 # predict for only colorado to save time
-predict_circi = ensemble(m_circi, newdata=all_red_crop, filename='circi_test.img',
+predict_circi = ensemble(m_circi, newdata=all_red_crop, filename='lfe_objects/SDMs/circi_test.img',
                    overwrite = T,
                    setting=list(method='weighted',
                                 stat='AUC'))
 
-writeRaster(predict_circi, filename = "circi_output.tif")
+writeRaster(predict_circi, filename = "lfe_objects/SDMs/circi_output.tif",
+            overwrite = T)
 plot(predict_circi)
 points(circ_xy)
 
 
 
-jpeg(file="circinaria_rogeri_CO.jpeg", height = 5,
+jpeg(file="lfe_objects/SDMs/circinaria_rogeri_CO.jpeg", height = 5,
      width = 6, units = "in",
      res = 600)
 plot(predict_circi)
@@ -459,8 +486,8 @@ dev.off()
 
 
 ##### Leprocaulon americanum #####
-##### Read in Occurrence Data #####
-leprocaulon_americanum = readr::read_csv("occurrences/Leprocaulon_americanum.csv") |>
+### Read in Occurrence Data ##
+leprocaulon_americanum = readr::read_csv("lfe_data/SDMs/occurrences/Leprocaulon_americanum.csv") |>
     dplyr::filter(!is.na(decimalLatitude)) |>
     dplyr::rename(lat = decimalLatitude,
                   lon = decimalLongitude)
@@ -555,29 +582,27 @@ m_lepro <- sdm(oc~.,
                replicatin='boot',
                n=10)
 
-plot(all_red_crop[[1]])
 
 # predict for only colorado to save time
-predict_lepro = ensemble(m_lepro, newdata=all_red_crop, filename='lepro_test.img',
+predict_lepro = ensemble(m_lepro, newdata=all_red_crop, filename='lfe_objects/SDMs/lepro_test.img',
                          overwrite = T,
                          setting=list(method='weighted',
                                       stat='AUC'))
 
-writeRaster(predict_lepro, filename = "lepro_output.tif")
+writeRaster(predict_lepro, filename = "lfe_objects/SDMs/lepro_output.tif",
+            overwrite = T)
 plot(predict_lepro)
 points(lepro_xy)
 
-
-
-jpeg(file="leprocaulon_americanum_CO.jpeg", height = 5,
+jpeg(file="lfe_objects/SDMs/leprocaulon_americanum_CO.jpeg", height = 5,
      width = 6, units = "in",
      res = 600)
 plot(predict_lepro)
 dev.off()
 
 ##### Myriolecis wetmorei #####
-##### Read in Occurrence Data #####
-myriolecis_wetmorei = readr::read_csv("occurrences/Myriolecis_wetmorei.csv") |>
+## Read in Occurrence Data ##
+myriolecis_wetmorei = readr::read_csv("lfe_data/SDMs/occurrences/Myriolecis_wetmorei.csv") |>
     dplyr::filter(!is.na(decimalLatitude)) |>
     dplyr::rename(lat = decimalLatitude,
                   lon = decimalLongitude)
@@ -672,31 +697,494 @@ m_myrio <- sdm(oc~.,
                replicatin='boot',
                n=10)
 
-plot(all_red_crop[[1]])
 
 # predict for only colorado to save time
-predict_myrio = ensemble(m_myrio, newdata=all_red_crop, filename='myrio_test.img',
+predict_myrio = ensemble(m_myrio, newdata=all_red_crop, filename='lfe_objects/SDMs/myrio_test.img',
                          overwrite = T,
                          setting=list(method='weighted',
                                       stat='AUC'))
 
-writeRaster(predict_myrio, filename = "myrio_output.tif")
+writeRaster(predict_myrio, filename = "lfe_objects/SDMs/myrio_output.tif",
+            overwrite = T)
 plot(predict_myrio)
 points(myrio_xy)
 
 
 
-jpeg(file="myriolecis_wetmorei_CO.jpeg", height = 5,
+jpeg(file="lfe_objects/SDMs/myriolecis_wetmorei_CO.jpeg", height = 5,
      width = 6, units = "in",
      res = 600)
 plot(predict_myrio)
 dev.off()
 
+##### Bacidina inundata #####
+Bacidina_inundata = readr::read_csv("lfe_data/SDMs/occurrences/Bacidina_inundata.csv") |>
+    dplyr::filter(!is.na(decimalLatitude)) |>
+    dplyr::rename(lat = decimalLatitude,
+                  lon = decimalLongitude)
+
+names(Bacidina_inundata)
+
+bacid_xy = Bacidina_inundata[, c(75,74)]
+
+bacid_sp <- SpatialPointsDataFrame(coords = bacid_xy, data = Bacidina_inundata,
+                                   proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
+
+plot(clims_crop[[1]])
+points(bacid_sp)
+
+library(raster)
+bacid_env = raster::extract(all, bacid_sp)
+
+bacid_env = as.data.frame(bacid_env)
+
+# explore
+library(ggplot2)
+
+names(bacid_env)
+
+ggplot(bacid_env, aes(x = vapor_pressure_deficit.8)) +
+    geom_histogram() +
+    theme_minimal()
+
+ggplot(bacid_env, aes(x = current_2.5arcmin_climaticMoistureIndex)) +
+    geom_histogram() +
+    theme_minimal()
+
+ggplot(bacid_env, aes(x = namerica_v2)) +
+    geom_histogram() +
+    theme_minimal()
+
+ggplot(bacid_env, aes(x = z)) +
+    geom_histogram() +
+    theme_minimal()
+
+cor_mat = cor(bacid_env)
+cor_mat
+
+# reduce raster stack
+names(bacid_env)
+
+#all_red = all[[c(20, 26, 44, 49, 50, 52, 58, 68, 70, 71, 72)]]
+
+bacid_env_red = raster::extract(all_red, bacid_sp)
+
+bacid_env_red = as.data.frame(bacid_env_red)
+
+bacid_env_red$lon = bacid_sp$lon
+bacid_env_red$lat = bacid_sp$lat
+
+cor_mat_red = cor(bacid_env_red)
+cor_mat_red
+
+bacid_env_red = na.omit(bacid_env_red)
+cor_mat_red = cor(bacid_env_red)
+cor_mat_red
+
+
+# option to reduce more!
+
+##### Run SDMs #####
+
+# get background points
+backgr = get_backgr(bacid_env_red[c(12,13)], 2000000,
+                    1000, all_red[[1]])
+
+# doesn't use raster anymore! terra package.
+# backgr = SDMtune::thinData(backgr, all_red[[1]])
+
+
+backgr = backgr |>
+    dplyr::rename(lon = x,
+                  lat = y)
+
+bacid_df = rbind(bacid_env_red[,c(12,13)], backgr)
+bacid_df$oc = c(rep(1, nrow(bacid_env_red)), rep(0, nrow(backgr)))
+
+coordinates(bacid_df) = ~ lon + lat
+
+d_bacid <- sdmData(formula=oc~., 
+                   train=bacid_df, 
+                   predictors = all_red)
+
+# fit the models (7 methods, and 10 replications using bootstrapping procedure):
+m_bacid <- sdm(oc~.,
+               data = d_bacid, 
+               methods=c('rf', 'gbm', 'gam'),
+               replicatin='boot',
+               n=10)
+
+plot(all_red_crop[[1]])
+
+# predict for only colorado to save time
+predict_bacid = ensemble(m_bacid, newdata=all_red_crop, filename='lfe_objects/SDMs/bacid_test.img',
+                         overwrite = T,
+                         setting=list(method='weighted',
+                                      stat='AUC'))
+
+writeRaster(predict_bacid, filename = "lfe_objects/SDMs/bacid_output.tif",
+            overwrite=T)
+plot(predict_bacid)
+levelplot(predict_bacid)
+
+
+
+
+jpeg(file="lfe_objects/SDMs/Bacidina_inundata_CO.jpeg", height = 5,
+     width = 6, units = "in",
+     res = 600)
+plot(predict_bacid)
+dev.off()
+
+##### Bellemerea sanguinea #####
+bellemerea_sanguinea = readr::read_csv("lfe_data/SDMs/occurrences/Bellemerea_sanguinea.csv") |>
+    dplyr::filter(!is.na(decimalLatitude)) |>
+    dplyr::rename(lat = decimalLatitude,
+                  lon = decimalLongitude)
+
+names(bellemerea_sanguinea)
+
+belle_xy = bellemerea_sanguinea[, c(75,74)]
+
+belle_sp <- SpatialPointsDataFrame(coords = belle_xy, data = bellemerea_sanguinea,
+                                   proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
+
+plot(clims_crop[[1]])
+points(belle_sp)
+
+library(raster)
+belle_env = raster::extract(all, belle_sp)
+
+belle_env = as.data.frame(belle_env)
+
+# explore
+library(ggplot2)
+
+names(belle_env)
+
+ggplot(belle_env, aes(x = vapor_pressure_deficit.8)) +
+    geom_histogram() +
+    theme_minimal()
+
+ggplot(belle_env, aes(x = current_2.5arcmin_climaticMoistureIndex)) +
+    geom_histogram() +
+    theme_minimal()
+
+ggplot(belle_env, aes(x = namerica_v2)) +
+    geom_histogram() +
+    theme_minimal()
+
+ggplot(belle_env, aes(x = z)) +
+    geom_histogram() +
+    theme_minimal()
+
+cor_mat = cor(belle_env)
+cor_mat
+
+# reduce raster stack
+names(belle_env)
+
+#all_red = all[[c(20, 26, 44, 49, 50, 52, 58, 68, 70, 71, 72)]]
+
+belle_env_red = raster::extract(all_red, belle_sp)
+
+belle_env_red = as.data.frame(belle_env_red)
+
+belle_env_red$lon = belle_sp$lon
+belle_env_red$lat = belle_sp$lat
+
+cor_mat_red = cor(belle_env_red)
+cor_mat_red
+
+belle_env_red = na.omit(belle_env_red)
+cor_mat_red = cor(belle_env_red)
+cor_mat_red
+
+
+# option to reduce more!
+
+##### Run SDMs #####
+
+# get background points
+backgr = get_backgr(belle_env_red[c(12,13)], 2000000,
+                    1000, all_red[[1]])
+
+# doesn't use raster anymore! terra package.
+# backgr = SDMtune::thinData(backgr, all_red[[1]])
+
+
+backgr = backgr |>
+    dplyr::rename(lon = x,
+                  lat = y)
+
+belle_df = rbind(belle_env_red[,c(12,13)], backgr)
+belle_df$oc = c(rep(1, nrow(belle_env_red)), rep(0, nrow(backgr)))
+
+coordinates(belle_df) = ~ lon + lat
+
+d_belle <- sdmData(formula=oc~., 
+                   train=belle_df, 
+                   predictors = all_red)
+
+# fit the models (7 methods, and 10 replications using bootstrapping procedure):
+m_belle <- sdm(oc~.,
+               data = d_belle, 
+               methods=c('rf', 'gbm', 'gam'),
+               replicatin='boot',
+               n=10)
+
+
+# predict for only colorado to save time
+predict_belle = ensemble(m_belle, newdata=all_red_crop, filename='lfe_objects/SDMs/belle_test.img',
+                         overwrite = T,
+                         setting=list(method='weighted',
+                                      stat='AUC'))
+
+writeRaster(predict_belle, filename = "lfe_objects/SDMs/belle_output.tif")
+plot(predict_belle)
+points(belle_xy)
+
+
+
+jpeg(file="lfe_objects/SDMs/bellemerea_sanguinea_CO.jpeg", height = 5,
+     width = 6, units = "in",
+     res = 600)
+plot(predict_belle)
+dev.off()
+
+##### Gyalecta fovelaris #####
+Gyalecta_foveolaris = readr::read_csv("lfe_data/SDMs/occurrences/Gyalecta_foveolaris.csv") |>
+    dplyr::filter(!is.na(decimalLatitude),
+                  !is.na(decimalLongitude)) |>
+    dplyr::rename(lat = decimalLatitude,
+                  lon = decimalLongitude)
+Gyalecta_foveolaris
+names(Gyalecta_foveolaris)
+
+gyale_xy = na.omit(Gyalecta_foveolaris[, c(75,74)])
+
+gyale_sp <- SpatialPointsDataFrame(coords = gyale_xy, data = Gyalecta_foveolaris,
+                                   proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
+
+plot(clims_crop[[1]])
+points(gyale_sp)
+
+library(raster)
+gyale_env = raster::extract(all, gyale_sp)
+
+gyale_env = as.data.frame(gyale_env)
+
+# explore
+library(ggplot2)
+
+names(gyale_env)
+
+ggplot(gyale_env, aes(x = vapor_pressure_deficit.8)) +
+    geom_histogram() +
+    theme_minimal()
+
+ggplot(gyale_env, aes(x = current_2.5arcmin_climaticMoistureIndex)) +
+    geom_histogram() +
+    theme_minimal()
+
+ggplot(gyale_env, aes(x = namerica_v2)) +
+    geom_histogram() +
+    theme_minimal()
+
+ggplot(gyale_env, aes(x = z)) +
+    geom_histogram() +
+    theme_minimal()
+
+cor_mat = cor(gyale_env)
+cor_mat
+
+# reduce raster stack
+names(gyale_env)
+
+#all_red = all[[c(20, 26, 44, 49, 50, 52, 58, 68, 70, 71, 72)]]
+
+gyale_env_red = raster::extract(all_red, gyale_sp)
+
+gyale_env_red = as.data.frame(gyale_env_red)
+
+gyale_env_red$lon = gyale_sp$lon
+gyale_env_red$lat = gyale_sp$lat
+
+cor_mat_red = cor(gyale_env_red)
+cor_mat_red
+
+gyale_env_red = na.omit(gyale_env_red)
+cor_mat_red = cor(gyale_env_red)
+cor_mat_red
+
+
+# option to reduce more!
+
+##### Run SDMs #####
+
+# get background points
+backgr = get_backgr(gyale_env_red[c(12,13)], 2000000,
+                    100, all_red[[1]])
+
+# doesn't use raster anymore! terra package.
+# backgr = SDMtune::thinData(backgr, all_red[[1]])
+
+
+backgr = backgr |>
+    dplyr::rename(lon = x,
+                  lat = y)
+
+gyale_df = rbind(gyale_env_red[,c(12,13)], backgr)
+gyale_df$oc = c(rep(1, nrow(gyale_env_red)), rep(0, nrow(backgr)))
+
+coordinates(gyale_df) = ~ lon + lat
+
+d_gyale <- sdmData(formula=oc~., 
+                   train=gyale_df, 
+                   predictors = all_red)
+
+# fit the models (7 methods, and 10 replications using bootstrapping procedure):
+m_gyale <- sdm(oc~.,
+               data = d_gyale, 
+               methods=c('rf', 'gbm', 'gam'),
+               replicatin='boot',
+               n=10)
+
+# predict for only colorado to save time
+predict_gyale = ensemble(m_gyale, newdata=all_red_crop, filename='lfe_objects/SDMs/gyale_test.img',
+                         overwrite = T,
+                         setting=list(method='weighted',
+                                      stat='AUC'))
+
+writeRaster(predict_gyale, filename = "lfe_objects/SDMs/gyale_output.tif")
+plot(predict_gyale)
+points(gyale_xy)
+
+
+
+jpeg(file="lfe_objects/SDMs/Gyalecta_foveolaris_CO.jpeg", height = 5,
+     width = 6, units = "in",
+     res = 600)
+plot(predict_gyale)
+dev.off()
+
+##### Xanthoparmelia idahoensis #####
+Xanthoparmelia_idahoensis = readr::read_csv("lfe_data/SDMs/occurrences/Xanthoparmelia_idahoensis.csv") |>
+    dplyr::filter(!is.na(decimalLatitude)) |>
+    dplyr::rename(lat = decimalLatitude,
+                  lon = decimalLongitude)
+
+names(Xanthoparmelia_idahoensis)
+
+Xantho_xy = Xanthoparmelia_idahoensis[, c(75,74)]
+
+Xantho_sp <- SpatialPointsDataFrame(coords = Xantho_xy, data = Xanthoparmelia_idahoensis,
+                                   proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
+
+plot(clims_crop[[1]])
+points(Xantho_sp)
+
+library(raster)
+Xantho_env = raster::extract(all, Xantho_sp)
+
+Xantho_env = as.data.frame(Xantho_env)
+
+# explore
+library(ggplot2)
+
+names(Xantho_env)
+
+ggplot(Xantho_env, aes(x = vapor_pressure_deficit.8)) +
+    geom_histogram() +
+    theme_minimal()
+
+ggplot(Xantho_env, aes(x = current_2.5arcmin_climaticMoistureIndex)) +
+    geom_histogram() +
+    theme_minimal()
+
+ggplot(Xantho_env, aes(x = namerica_v2)) +
+    geom_histogram() +
+    theme_minimal()
+
+ggplot(Xantho_env, aes(x = z)) +
+    geom_histogram() +
+    theme_minimal()
+
+cor_mat = cor(Xantho_env)
+cor_mat
+
+# reduce raster stack
+names(Xantho_env)
+
+#all_red = all[[c(20, 26, 44, 49, 50, 52, 58, 68, 70, 71, 72)]]
+
+Xantho_env_red = raster::extract(all_red, Xantho_sp)
+
+Xantho_env_red = as.data.frame(Xantho_env_red)
+
+Xantho_env_red$lon = Xantho_sp$lon
+Xantho_env_red$lat = Xantho_sp$lat
+
+cor_mat_red = cor(Xantho_env_red)
+cor_mat_red
+
+Xantho_env_red = na.omit(Xantho_env_red)
+cor_mat_red = cor(Xantho_env_red)
+cor_mat_red
+
+
+# option to reduce more!
+
+##### Run SDMs #####
+
+# get background points
+backgr = get_backgr(Xantho_env_red[c(12,13)], 2000000,
+                    100, all_red[[1]])
+
+# doesn't use raster anymore! terra package.
+# backgr = SDMtune::thinData(backgr, all_red[[1]])
+
+
+backgr = backgr |>
+    dplyr::rename(lon = x,
+                  lat = y)
+
+Xantho_df = rbind(Xantho_env_red[,c(12,13)], backgr)
+Xantho_df$oc = c(rep(1, nrow(Xantho_env_red)), rep(0, nrow(backgr)))
+
+coordinates(Xantho_df) = ~ lon + lat
+
+d_Xantho <- sdmData(formula=oc~., 
+                   train=Xantho_df, 
+                   predictors = all_red)
+
+# fit the models (7 methods, and 10 replications using bootstrapping procedure):
+m_Xantho <- sdm(oc~.,
+               data = d_Xantho, 
+               methods=c('rf', 'gbm', 'gam'),
+               replicatin='boot',
+               n=10)
+
+# predict for only colorado to save time
+predict_Xantho = ensemble(m_Xantho, newdata=all_red_crop, filename='lfe_objects/SDMs/Xantho_test.img',
+                         overwrite = T,
+                         setting=list(method='weighted',
+                                      stat='AUC'))
+
+writeRaster(predict_Xantho, filename = "lfe_objects/SDMs/Xantho_output.tif")
+plot(predict_Xantho)
+points(Xantho_xy)
+
+
+
+jpeg(file="lfe_objects/SDMs/Xanthoparmelia_idahoensis_CO.jpeg", height = 5,
+     width = 6, units = "in",
+     res = 600)
+plot(predict_Xantho)
+dev.off()
 ##### Plot #####
 
-# load in old prediction for omphalora
-predict_ompha = raster("omphalora_output.tif")
-predict_ompha = crop(predict_ompha, ex)
+
 plot(predict_ompha)
 plot(predict_circi)
 plot(predict_lepro)
@@ -733,7 +1221,7 @@ final_plot = rasterVis::levelplot(predict_stack,
 final_plot
 
 # save
-jpeg(filename = "prelim_SDMs.jpeg", width = 7, height = 5,
+jpeg(filename = "lfe_objects/SDMs/prelim_SDMs.jpeg", width = 7, height = 5,
      units = "in",
      res = 600)
 rasterVis::levelplot(predict_stack,
@@ -751,3 +1239,233 @@ rasterVis::levelplot(predict_stack,
                                                   col = "black")
                      ))
 dev.off()
+
+levelplot(predict_bacid, margin = list(draw = F)) +
+    layer(sp.polygons(NF_sp, fill='white', alpha=0.3))
+
+plot(predict_bacid)
+plot(NF_sp, bg = "transparent",add = T)
+
+
+bacid_plot = ggplot() +
+    geom_stars(
+        data = st_as_stars(predict_bacid),
+        aes(x = x, y = y)
+    ) +
+    scale_fill_continuous(low = "yellow", high = "purple",
+                          name = "POC") +
+    geom_sf(
+        data = NF_reproj, 
+        col = "black",
+        alpha = 0
+    ) +
+    xlab("") +
+    ylab("") +
+    ggtitle("Bacidina inundata") +
+    theme_minimal() +
+    theme(axis.ticks = element_blank(),
+          axis.text = element_blank())
+
+ggsave("lfe_objects/SDMs/bacid_plot.pdf", bacid_plot, device = "pdf",
+       width = 10,
+       height = 8,
+       units = "in")
+
+belle_plot = ggplot() +
+    geom_stars(
+        data = st_as_stars(predict_belle),
+        aes(x = x, y = y)
+    ) +
+    scale_fill_continuous(low = "yellow", high = "purple",
+                          name = "POC") +
+    geom_sf(
+        data = NF_reproj, 
+        col = "black",
+        alpha = 0
+    ) +
+    xlab("") +
+    ylab("") +
+    ggtitle("Bellemerea sanguinea") +
+    theme_minimal() +
+    theme(axis.ticks = element_blank(),
+          axis.text = element_blank())
+
+ggsave("lfe_objects/SDMs/belle_plot.pdf", belle_plot, device = "pdf",
+       width = 10,
+       height = 8,
+       units = "in")
+
+circi_plot = ggplot() +
+    geom_stars(
+        data = st_as_stars(predict_circi),
+        aes(x = x, y = y)
+    ) +
+    scale_fill_continuous(low = "yellow", high = "purple",
+                          name = "POC") +
+    geom_sf(
+        data = NF_reproj, 
+        col = "black",
+        alpha = 0
+    ) +
+    xlab("") +
+    ylab("") +
+    ggtitle("Circinaria rogeri") +
+    theme_minimal() +
+    theme(axis.ticks = element_blank(),
+          axis.text = element_blank())
+
+ggsave("lfe_objects/SDMs/circi_plot.pdf", circi_plot, device = "pdf",
+       width = 10,
+       height = 8,
+       units = "in")
+
+gyale_plot = ggplot() +
+    geom_stars(
+        data = st_as_stars(predict_gyale),
+        aes(x = x, y = y)
+    ) +
+    scale_fill_continuous(low = "yellow", high = "purple",
+                          name = "POC") +
+    geom_sf(
+        data = NF_reproj, 
+        col = "black",
+        alpha = 0
+    ) +
+    xlab("") +
+    ylab("") +
+    ggtitle("Gyalecta foveolaris") +
+    theme_minimal() +
+    theme(axis.ticks = element_blank(),
+          axis.text = element_blank())
+
+ggsave("lfe_objects/SDMs/gyale_plot.pdf", gyale_plot, device = "pdf",
+       width = 10,
+       height = 8,
+       units = "in")
+
+lepro_plot = ggplot() +
+    geom_stars(
+        data = st_as_stars(predict_lepro),
+        aes(x = x, y = y)
+    ) +
+    scale_fill_continuous(low = "yellow", high = "purple",
+                          name = "POC") +
+    geom_sf(
+        data = NF_reproj, 
+        col = "black",
+        alpha = 0
+    ) +
+    xlab("") +
+    ylab("") +
+    ggtitle("Leprocaulon americanum") +
+    theme_minimal() +
+    theme(axis.ticks = element_blank(),
+          axis.text = element_blank())
+
+ggsave("lfe_objects/SDMs/lepro_plot.pdf", lepro_plot, device = "pdf",
+       width = 10,
+       height = 8,
+       units = "in")
+
+myrio_plot = ggplot() +
+    geom_stars(
+        data = st_as_stars(predict_myrio),
+        aes(x = x, y = y)
+    ) +
+    scale_fill_continuous(low = "yellow", high = "purple",
+                          name = "POC") +
+    geom_sf(
+        data = NF_reproj, 
+        col = "black",
+        alpha = 0
+    ) +
+    xlab("") +
+    ylab("") +
+    ggtitle("Myriolecis wetmorei") +
+    theme_minimal() +
+    theme(axis.ticks = element_blank(),
+          axis.text = element_blank())
+
+ggsave("lfe_objects/SDMs/myrio_plot.pdf", myrio_plot, device = "pdf",
+       width = 10,
+       height = 8,
+       units = "in")
+
+ompha_plot = ggplot() +
+    geom_stars(
+        data = st_as_stars(predict_ompha),
+        aes(x = x, y = y)
+    ) +
+    scale_fill_continuous(low = "yellow", high = "purple",
+                          name = "POC") +
+    geom_sf(
+        data = NF_reproj, 
+        col = "black",
+        alpha = 0
+    ) +
+    xlab("") +
+    ylab("") +
+    ggtitle("Omphalora arizonica") +
+    theme_minimal() +
+    theme(axis.ticks = element_blank(),
+          axis.text = element_blank())
+
+ggsave("lfe_objects/SDMs/ompha_plot.pdf", ompha_plot, device = "pdf",
+       width = 10,
+       height = 8,
+       units = "in")
+
+xantho_plot = ggplot() +
+    geom_stars(
+        data = st_as_stars(predict_Xantho),
+        aes(x = x, y = y)
+    ) +
+    scale_fill_continuous(low = "yellow", high = "purple",
+                          name = "POC") +
+    geom_sf(
+        data = NF_reproj, 
+        col = "black",
+        alpha = 0
+    ) +
+    xlab("") +
+    ylab("") +
+    ggtitle("Xanthoparmelia idahoensis") +
+    theme_minimal() +
+    theme(axis.ticks = element_blank(),
+          axis.text = element_blank())
+
+ggsave("lfe_objects/SDMs/xantho_plot.pdf", xantho_plot, device = "pdf",
+       width = 10,
+       height = 8,
+       units = "in")
+
+all8 = predict_bacid + predict_belle +
+    predict_circi + predict_gyale +
+    predict_lepro + predict_myrio +
+    predict_ompha + predict_Xantho
+
+
+all_plot = ggplot() +
+    geom_stars(
+        data = st_as_stars(all8),
+        aes(x = x, y = y)
+    ) +
+    scale_fill_continuous(low = "yellow", high = "purple",
+                          name = "POC") +
+    geom_sf(
+        data = NF_reproj, 
+        col = "black",
+        alpha = 0
+    ) +
+    xlab("") +
+    ylab("") +
+    ggtitle("All 8") +
+    theme_minimal() +
+    theme(axis.ticks = element_blank(),
+          axis.text = element_blank())
+all_plot
+
+ggsave("lfe_objects/SDMs/all8_plot.pdf", all_plot, device = "pdf",
+       width = 10,
+       height = 8,
+       units = "in")

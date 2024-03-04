@@ -9,18 +9,41 @@ graphics.off()
 source("functions.R")
 
 # libraries
-library(dplyr)
+# visualization
 library(ggplot2)
 library(ggpubr)
+
+# spatial
+library(raster)
+library(terra)
+library(sp)
+library(sf)
+library(stars)
+library(fasterize)
+library(ncdf4)
+library(rasterVis)
+
+# temporal
 library(lubridate)
+
+# ecophys
+library(photobiology)
+library(meteoland)
+
+# utility
+library(dplyr)
 library(plyr)
+library(tidyverse)
 library(readr)
 library(data.table)
-library(photobiology)
+
+# correlations
 library(grid)
 library(PerformanceAnalytics)
 library(corrplot)
 library(psych)
-library(meteoland)
-library(stars)
+
+
+
+
 
