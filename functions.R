@@ -102,3 +102,13 @@ is_daytime <- function(timestamp, sunrise_times, sunset_times) {
 # add in a sunrise/sunset component
 # https://psl.noaa.gov/boulder/boulder.sunset.html
 
+
+#Takes as an input a stars raster layer
+#CJ Brown 2020-05-18
+
+st_as_raster <- function(rstars){
+    rext <- st_bbox(rstars)
+    raster(t(rstars[[1]]), xmn = rext[1], xmx = rext[3],
+           ymn = rext[2], ymx=rext[4],
+           crs = st_crs(rstars)$proj4string)
+}

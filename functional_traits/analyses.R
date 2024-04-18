@@ -10,7 +10,7 @@ ft_plot_half = ft_plot |>
 # Chlorophyll
 
 CH_VPD = ggplot(data = ft_plot_half,
-                mapping = aes(x = mean_vpd, y = CH, color = species)) +
+                mapping = aes(x = mean_vpd, y = CH_area, color = species)) +
     geom_point() +
     theme_minimal() +
     labs(title = "VPD Drives Chlorophyll Concentration per Area",
@@ -19,13 +19,20 @@ CH_VPD = ggplot(data = ft_plot_half,
 CH_VPD
 
 CH_CC = ggplot(data = ft_plot_half,
-                mapping = aes(x = canopy_cover, y = CH, color = species)) +
+                mapping = aes(x = canopy_cover, y = CH_area, color = species)) +
     geom_point() +
     theme_minimal() +
     labs(x = "Canopy Cover (%)", y = "Chlorophyll Concentration") +
-    geom_smooth(method = "lm") +
-    theme(legend.position = "none")
+    geom_smooth(method = "lm")
 CH_CC
+
+CH_north = ggplot(data = ft_plot_half,
+                mapping = aes(x = Northing, y = CH_area, color = species)) +
+    geom_point() +
+    theme_minimal() +
+    labs(x = "Northing", y = "Chlorophyll Concentration") +
+    geom_smooth(method = "lm")
+CH_north
 
 CH_env = ggarrange(CH_VPD, CH_CC,
                    labels = c("A", "B"),
@@ -37,7 +44,7 @@ ggsave("lfe_objects/functional_traits/CH_env.jpeg", plot = CH_env,
 
 # adjust for weight
 CH_weight_VPD = ggplot(data = ft_plot_half,
-                mapping = aes(x = mean_vpd, y = CH / Dry_Weight, color = species)) +
+                mapping = aes(x = mean_vpd, y = CH_weight, color = species)) +
     geom_point() +
     theme_minimal() +
     labs(title = "VPD does not drive Chlorophyll Concentration per Weight",
@@ -50,7 +57,7 @@ ggsave("lfe_objects/functional_traits/CH_weight_VPD.jpeg", plot = CH_weight_VPD,
 
 ## Chlorophyll vs. algal layer thickness
 CH_Algal = ggplot(data = ft_plot_half,
-                  mapping = aes(x = Algal, y = CH, color = species)) +
+                  mapping = aes(x = Algal, y = CH_area, color = species)) +
     geom_point() +
     theme_minimal() +
     labs(
@@ -60,7 +67,7 @@ CH_Algal
 
 ## Self_shading metric CH / Algal vs. VPD
 SS_CC = ggplot(data = ft_plot_half,
-                mapping = aes(x = canopy_cover, y = CH / Algal, color = species)) +
+                mapping = aes(x = canopy_cover, y = CH_area / Algal, color = species)) +
     geom_point() +
     theme_minimal() +
     labs(
@@ -81,9 +88,7 @@ STM_VPD = ggplot(data = ft_plot_half,
                        mapping = aes(x = mean_vpd, y = STM, color = species)) +
     geom_point() +
     theme_minimal() +
-    scale_colour_discrete(name="Species", 
-                          labels=c("Flavopunctelia soredica",
-                                "Parmelia sulcata")) +
+    scale_colour_discrete(name="Species") +
     labs(
          x = "Vapor Pressure Deficit", y = "Specific Thallus Mass") +
     geom_smooth(method = "lm") +
@@ -147,7 +152,7 @@ SM_CHSM
 ## UV_reflectance correlate with SM?
 
 SM_UV_refl = ggplot(data = ft_plot_half,
-                    mapping = aes(x = mean_UV_abs, y = UV_ref, color = species)) +
+                    mapping = aes(x = mean_SM_area, y = UV_ref, color = species)) +
     geom_point() +
     theme_minimal() +
     labs(title = "Secondary Metabolites do not drive UV Reflectance",
@@ -157,17 +162,17 @@ SM_UV_refl
 
 ## SM vs. canopy_cover and VPD
 SM_CC = ggplot(data = ft_plot_half,
-               mapping = aes(x = canopy_cover, y = mean_UV_abs, color = species)) +
+               mapping = aes(x = canopy_cover, y = mean_SM_area, color = species)) +
     geom_point() +
     theme_minimal() +
     labs(
          x = "Canopy Cover (%)", y = "UV Absorbance") +
     geom_smooth(method = "lm") +
-    theme(legend.position = "none")
+    theme(legend.position = "right")
 SM_CC
 
 SM_VPD = ggplot(data = ft_plot_half,
-               mapping = aes(x = mean_vpd, y = mean_UV_abs, color = species)) +
+               mapping = aes(x = mean_vpd, y = mean_SM_area, color = species)) +
     geom_point() +
     theme_minimal() +
     labs(
@@ -343,33 +348,33 @@ ggsave("lfe_objects/functional_traits/coll_env.jpeg", plot = coll_env,
 
 ## spectral indices
 PRI_wd = ggplot(ft_plot,
-                mapping = aes(x = state,
+                mapping = aes(x = species,
                               y = PRI,
-                              color = species)) +
+                              color = state)) +
     geom_boxplot() +
     theme_minimal()
 PRI_wd
 
 LI_wd = ggplot(ft_plot,
-                mapping = aes(x = state,
+                mapping = aes(x = species,
                               y = LI,
-                              color = species)) +
+                              color = state)) +
     geom_boxplot() +
     theme_minimal()
 LI_wd
 
 NPCI_wd = ggplot(ft_plot,
-                 mapping = aes(x = state,
+                 mapping = aes(x = species,
                                y = NPCI,
-                               color = species)) +
+                               color = state)) +
     geom_boxplot() +
     theme_minimal()
 NPCI_wd
 
 MCARI1_wd = ggplot(ft_plot,
-                   mapping = aes(x = state,
+                   mapping = aes(x = species,
                                  y = MCARI1,
-                                 color = species)) +
+                                 color = state)) +
     geom_boxplot() +
     theme_minimal()
 MCARI1_wd
@@ -382,21 +387,264 @@ SI_wd
 ggsave("lfe_objects/functional_traits/SI_wd.jpeg", plot = SI_wd,
        dpi = 600, width = 7, height = 5, units = "in")
 
-##### Best Figure #####
-# SM_CC
-# STM_VPD
-# CH_CC
+# collection data and WHC
+WHC_north = ggplot(data = ft_plot_half,
+                   mapping = aes(x = coll_northing, y = WHC, color = species)) +
+    geom_point() +
+    theme_minimal() +
+    labs(
+        x = "Collection Northing", y = "WHC") +
+    geom_smooth(method = "lm")
+WHC_north
 
-best_figure = ggarrange(SM_CC, CH_CC, STM_VPD,
-          labels = c("A", "B", "C"),
-          widths = c(1,1,2),
-          ncol = 3, nrow = 1)
-best_figure
+WHC_slope = ggplot(data = ft_plot_half,
+                   mapping = aes(x = Slope.y, y = WHC, color = species)) +
+    geom_point() +
+    theme_minimal() +
+    labs(
+        x = "Collection Slope", y = "WHC") +
+    geom_smooth(method = "lm")
+WHC_slope
 
-ggsave("lfe_objects/functional_traits/best_figure.jpeg", plot = best_figure,
-       dpi = 600, width = 8, height = 3, units = "in")
+# collection data and SM
+SM_north = ggplot(data = ft_plot_half,
+                   mapping = aes(x = coll_northing, y = SM_area, color = species)) +
+    geom_point() +
+    theme_minimal() +
+    labs(
+        x = "Collection Northing", y = "Secondary Metabolites") +
+    geom_smooth(method = "lm")
+SM_north
+
+SM_slope = ggplot(data = ft_plot_half,
+                   mapping = aes(x = Slope.y, y = SM_area, color = species)) +
+    geom_point() +
+    theme_minimal() +
+    labs(
+        x = "Collection Slope", y = "Secondary Metabolites") +
+    geom_smooth(method = "lm")
+SM_slope
+
+# pca
+
+# clean up data to only include traits
+traits_only = ft_plot_half |>
+    dplyr::select(species, sample, 
+                  WHC,
+                  thallus_thickness, 
+                  WL,
+                  Lower.Cortex)
+pca_matrix = as.matrix(traits_only[3:6])
+
+# do a pca
+trait_pca = prcomp(x = pca_matrix)
+
+autoplot(trait_pca, data = ft_plot_half, colour = 'mean_vpd',
+         loadings = TRUE, loadings.colour = 'blue',
+         loadings.label = TRUE, loadings.label.size = 3)
+autoplot(trait_pca, x = 2, y = 3,data = ft_plot_half, colour = 'mean_vpd',
+         loadings = TRUE, loadings.colour = 'blue',
+         loadings.label = TRUE, loadings.label.size = 3)
+
+plot(trait_pca)
+pcs = as.data.frame(trait_pca$x)
+pcs$sample = traits_only$sample
+
+ft_pc_plot = merge(pcs, ft_plot_half, by = "sample")
+ft_pc_plot
+
+ggplot(data = ft_pc_plot,
+       mapping = aes(x = PC1,
+                     y = PC2,
+                     color = species)) +
+    geom_point()
+
+
+# trait correlations
+cor = pairs.panels(traits_only[3:8], 
+             method = "pearson", # correlation method
+             hist.col = "grey",
+             density = T,  # show density plots
+             ellipses = F, # show correlation ellipses
+             scale = F,
+             cex = 2,
+             cex.cor=1,
+             stars = T,
+             gap = 0,
+             smoother = T,
+             cex.axis = 1,
+             pch = 19)
+
+cor1 = pairs.panels(ft_plot_half |>
+                        dplyr::select( 
+                                      CH_area,
+                                      SM_area,
+                                      WHC, STM, 
+                                      thallus_thickness,
+                                      WL,
+                                      mean_RH, mean_vpd), 
+                   method = "pearson", # correlation method
+                   hist.col = "grey",
+                   density = T,  # show density plots
+                   ellipses = F, # show correlation ellipses
+                   scale = F,
+                   cex = 2,
+                   cex.cor=1,
+                   stars = T,
+                   gap = 0,
+                   smoother = T,
+                   cex.axis = 1,
+                   pch = 19)
+
+cor2 = pairs.panels(ft_plot_half |>
+                        dplyr::select(
+                            STM,
+                            WHC,
+                            WL,
+                            Upper.Cortex,
+                            Algal,
+                            Medulla,
+                            Lower.Cortex), 
+                    method = "pearson", # correlation method
+                    hist.col = "grey",
+                    density = T,  # show density plots
+                    ellipses = F, # show correlation ellipses
+                    scale = F,
+                    cex = 2,
+                    cex.cor=1,
+                    stars = T,
+                    gap = 0,
+                    smoother = T,
+                    cex.axis = 1,
+                    pch = 19)
+
+
+# CH and STM
+CH_STM = ggplot(data = ft_plot_half,
+                mapping = aes(x = STM, y = CH_area, color = species)) +
+    geom_point() +
+    theme_minimal() +
+    labs(
+        x = "Specific Thallus Mass", y = "Chlorophyll") +
+    geom_smooth(method = "lm")
+CH_STM
+
+# traits and RH
+WHC_RH = ggplot(data = ft_plot_half,
+                mapping = aes(x = mean_RH, y = WHC, color = species)) +
+    geom_point() +
+    theme_minimal() +
+    labs(
+        x = "Mean RH", y = "WHC") +
+    geom_smooth(method = "lm")
+WHC_RH
+       
+TT_RH = ggplot(data = ft_plot_half,
+               mapping = aes(x = mean_RH, y = thallus_thickness, color = species)) +
+    geom_point() +
+    theme_minimal() +
+    labs(
+        x = "Mean RH", y = "Thallus Thickness") +
+    geom_smooth(method = "lm")     
+TT_RH       
+       
+
+CH_RH = ggplot(data = ft_plot_half,
+               mapping = aes(x = mean_RH, y = CH_area, color = species)) +
+    geom_point() +
+    theme_minimal() +
+    labs(
+        x = "Mean RH", y = "Chlorophyll") +
+    geom_smooth(method = "lm")     
+CH_RH 
+
+       
+
+##### Linear Models #####
+
+TT_lm = lm(data = ft_plot,
+           formula = thallus_thickness ~ species +
+               mean_vpd)
+summary(TT_lm)
+
+WL_lm = lm(data = ft_plot,
+           formula = WL ~ species + mean_RH)
+summary(WL_lm)
+
+##### Community Weighted Trait Means #####
 
 
 
+CWTM = function(
+        trait,
+        df,
+        weights
+){
+    df$weight = ifelse(df$Relative.Abundance == 1, weights[1],
+                ifelse(df$Relative.Abundance == 2, weights[2],
+                ifelse(df$Relative.Abundance == 3, weights[3],
+                ifelse(df$Relative.Abundance == 4, weights[4],
+                ifelse(df$Relative.Abundance == 5, weights[5],
+                       NA)))))
+    df$toi = df[[trait]]
+                       
+    
+    CWTM = df |>
+        dplyr::select(plot.x, sample, toi, weight) |>
+        dplyr::group_by(plot.x) |>
+        dplyr::summarize(CWTM = weighted.mean(toi, weight)) |>
+        dplyr::ungroup() |>
+        dplyr::rename(plot = plot.x)
+    # rename column
+    CWTM[[trait]] = CWTM$CWTM
+    CWTM = CWTM[, c(1,3)]
+    
+    return(CWTM)
+}
 
+plot_mean_WHC = CWTM("WHC", ft_plot_half, weights = c(.1, .25, .5, 1, 2))
+plot_mean_CH = CWTM("CH_area", ft_plot_half, weights = c(.1, .25, .5, 1, 2))
+plot_mean_STM = CWTM("STM", ft_plot_half, weights = c(.1, .25, .5, 1, 2))
+plot_mean_TT = CWTM("thallus_thickness", ft_plot_half, weights = c(.1, .25, .5, 1, 2))
+plot_mean_SM = CWTM("SM_area", ft_plot_half, weights = c(.1, .25, .5, 1, 2))
+plot_mean_WL = CWTM("WL", ft_plot_half, weights = c(.1, .25, .5, 1, 2))
 
+#put all data frames into list
+df_list = list(plot_mean_WHC,
+               plot_mean_CH,
+               plot_mean_STM,
+               plot_mean_TT,
+               plot_mean_SM,
+               plot_mean_WL)
+
+#merge all data frames in list
+CWTMs = df_list |> reduce(full_join, by='plot')
+
+# merge with plot characteristics 
+plot_chars = read.csv("lfe_objects/OSMP_plots/plot_chars_full.csv")
+plot_CWTMs = merge(plot_chars, CWTMs, by = "plot")
+
+cor3 = pairs.panels(plot_CWTMs |>
+                        dplyr::select(
+                            mean_vpd,
+                            mean_RH,
+                            Northing,
+                            WL,
+                            SM_area,
+                            CH_area,
+                            WHC,
+                            STM,
+                            ), 
+                    method = "pearson", # correlation method
+                    hist.col = "grey",
+                    density = T,  # show density plots
+                    ellipses = F, # show correlation ellipses
+                    scale = F,
+                    cex = 2,
+                    cex.cor=1,
+                    stars = T,
+                    gap = 0,
+                    smoother = T,
+                    cex.axis = 1,
+                    pch = 19)
+    

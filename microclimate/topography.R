@@ -93,19 +93,15 @@ OSMP_slope = raster("lfe_data/SDMs/OSMP_OpenTopography/viz.USGS10m_slope.tif")
 OSMP_CHM = raster("lfe_data/SDMs/OSMP_OpenTopography/CHM.tif")
 
 plot(OSMP_CHM)
+
 # chack that slope and aspect are in degrees and DEM in meters
 cellStats(OSMP_slope, "max")
 cellStats(OSMP_aspect, "max")
 cellStats(OSMP_DEM, "max")
 cellStats(OSMP_TWI, "max")
 cellStats(OSMP_rough, "max")
+cellStats(OSMP_CHM, "max")
 
-# crop to OSMP area
-OSMP_DEM = crop(OSMP_DEM, OSMP_extent)
-OSMP_TWI = crop(OSMP_TWI, OSMP_extent)
-OSMP_aspect = crop(OSMP_aspect, OSMP_extent)
-OSMP_rough = crop(OSMP_rough, OSMP_extent)
-OSMP_slope = crop(OSMP_slope, OSMP_extent)
 
 plot(OSMP_DEM)
 points(plot_chars$Lon, plot_chars$Lat)
@@ -116,6 +112,7 @@ OSMP_TWI = st_as_stars(OSMP_TWI)
 OSMP_aspect = st_as_stars(OSMP_aspect)
 OSMP_rough = st_as_stars(OSMP_rough)
 OSMP_slope = st_as_stars(OSMP_slope)
+OSMP_CHM = st_as_stars(OSMP_CHM)
 
 # convert from NAD83 to WGS84
 st_crs(OSMP_DEM)
@@ -126,6 +123,39 @@ OSMP_TWI = st_warp(OSMP_TWI, crs = st_crs(4326))
 OSMP_aspect = st_warp(OSMP_aspect, crs = st_crs(4326))
 OSMP_rough = st_warp(OSMP_rough, crs = st_crs(4326))
 OSMP_slope = st_warp(OSMP_slope, crs = st_crs(4326))
+OSMP_CHM = st_warp(OSMP_CHM, crs = st_crs(4326))
+
+# reconvert to raster and crop
+OSMP_DEM = st_as_raster(OSMP_DEM)
+OSMP_TWI = st_as_raster(OSMP_TWI)
+OSMP_aspect = st_as_raster(OSMP_aspect)
+OSMP_rough = st_as_raster(OSMP_rough)
+OSMP_slope = st_as_raster(OSMP_slope)
+OSMP_CHM = st_as_raster(OSMP_CHM)
+
+crs(OSMP_CHM)
+plot(OSMP_CHM)
+points(plot_chars$Lon, plot_chars$Lat)
+
+# fix negative values on CHM
+OSMP_CHM <- reclassify(OSMP_CHM, cbind(-Inf, 0, 0), right=FALSE)
+
+
+# crop 
+OSMP_DEM = crop(OSMP_DEM, OSMP_extent)
+OSMP_TWI = crop(OSMP_TWI, OSMP_extent)
+OSMP_aspect = crop(OSMP_aspect, OSMP_extent)
+OSMP_rough = crop(OSMP_rough, OSMP_extent)
+OSMP_slope = crop(OSMP_slope, OSMP_extent)
+OSMP_CHM = crop(OSMP_CHM, OSMP_extent)
+
+# convert back to stars
+OSMP_DEM = st_as_stars(OSMP_DEM)
+OSMP_TWI = st_as_stars(OSMP_TWI)
+OSMP_aspect = st_as_stars(OSMP_aspect)
+OSMP_rough = st_as_stars(OSMP_rough)
+OSMP_slope = st_as_stars(OSMP_slope)
+OSMP_CHM = st_as_stars(OSMP_CHM)
 
 # plot
 ggplot() +
@@ -152,6 +182,7 @@ ggplot() +
 # read in shapefile
 OSMP_veg = st_read("lfe_data/SDMs/OSMP_Veg_USNVC_Alliances")
 
+
 # find right level of vegetation to use
 # target types
 # 1: Shrub/Grassland/Wetland
@@ -161,8 +192,9 @@ OSMP_veg = st_read("lfe_data/SDMs/OSMP_Veg_USNVC_Alliances")
 unique(OSMP_veg$MACROGROUP)
 unique(OSMP_veg$SUBCLASS)
 unique(OSMP_veg$CONSTARGET)
+unique(OSMP_veg$SCIENTIFIC)
 
-
+class(OSMP_veg)
 
 
 ##### Canopy Openness from CHM #####

@@ -37,91 +37,39 @@ reflect_ids$sample = paste0(tolower(substr(reflect_ids$species,1,3)),
                             reflect_ids$plot, "_", reflect_ids$collection)
 
 # list folders
-folders = list.dirs("lfe_data/functional_traits/reflect/")
-folders = folders[-c(1)]
-folders
+filelist = list.files("lfe_data/functional_traits/reflect/",
+           pattern = "*.txt", recursive = TRUE)
+filelist = paste0("lfe_data/functional_traits/reflect/", filelist)
+filelist
 
-# go through each folder 1 by 1
-filelist = list.files(path = folders[1], 
-                      pattern = "*.txt")
-filelist = paste0(folders[1], "/", filelist)
-filelist 
+
 datalist = lapply(filelist, function(x)as.data.frame(fread(x, header=F, sep = "\t")))
-lichen_spectra1 = do.call("rbind", datalist) |>
+lichen_spectra = do.call("rbind", datalist) |>
     dplyr::filter(V1 > 250 & V1 < 800)
 # add id number
-lichen_spectra1$num = rep(1:length(datalist), each = 1607)
+lichen_spectra$num = rep(1:length(datalist), each = 1607)
+lichen_spectra$path = rep(filelist, each = 1607)
+lichen_spectra = lichen_spectra |>
+    separate_wider_delim(cols = path,
+                         names = c("1", "2", "3", "Folder", "file"),
+                         delim = "/")
+lichen_spectra$file = substr(lichen_spectra$file, 1,
+                                  nchar(lichen_spectra$file)-4)
+lichen_spectra$num = as.numeric(substr(lichen_spectra$file, 
+                            nchar(lichen_spectra$file)-1,
+                            nchar(lichen_spectra$file)))
+str(lichen_spectra)
+head(lichen_spectra)
 
-# match with id df
-reflect_ids1 = reflect_ids |>
-    dplyr::filter(Folder == sub('.*/', '', folders[1]))
-
-str(reflect_ids1)
-lichen_spectra1 = merge(lichen_spectra1, reflect_ids1, by = "num")
-# 2
-filelist = list.files(path = folders[2], 
-                      pattern = "*.txt")
-filelist = paste0(folders[2], "/", filelist)
-filelist 
-datalist = lapply(filelist, function(x)as.data.frame(fread(x, header=F, sep = "\t")))
-lichen_spectra2 = do.call("rbind", datalist) |>
-    dplyr::filter(V1 > 250 & V1 < 800)
-# add id number
-lichen_spectra2$num = rep(1:length(datalist), each = 1607)
-
-# match with id df
-reflect_ids2 = reflect_ids |>
-    dplyr::filter(Folder == sub('.*/', '', folders[2]))
-
-str(reflect_ids2)
-lichen_spectra2 = merge(lichen_spectra2, reflect_ids2, by = "num")
-
-# go through each folder 1 by 1
-filelist = list.files(path = folders[3], 
-                      pattern = "*.txt")
-filelist = paste0(folders[3], "/", filelist)
-filelist 
-datalist = lapply(filelist, function(x)as.data.frame(fread(x, header=F, sep = "\t")))
-lichen_spectra3 = do.call("rbind", datalist) |>
-    dplyr::filter(V1 > 250 & V1 < 800)
-# add id number
-lichen_spectra3$num = rep(1:length(datalist), each = 1607)
-
-# match with id df
-reflect_ids3 = reflect_ids |>
-    dplyr::filter(Folder == sub('.*/', '', folders[3]))
-
-str(reflect_ids3)
-lichen_spectra3 = merge(lichen_spectra3, reflect_ids3, by = "num")
-
-# go through each folder 1 by 1
-filelist = list.files(path = folders[4], 
-                      pattern = "*.txt")
-filelist = paste0(folders[4], "/", filelist)
-filelist 
-datalist = lapply(filelist, function(x)as.data.frame(fread(x, header=F, sep = "\t")))
-lichen_spectra4 = do.call("rbind", datalist) |>
-    dplyr::filter(V1 > 250 & V1 < 800)
-# add id number
-lichen_spectra4$num = rep(1:length(datalist), each = 1607)
-
-# match with id df
-reflect_ids4 = reflect_ids |>
-    dplyr::filter(Folder == sub('.*/', '', folders[4]))
-
-lichen_spectra4 = merge(lichen_spectra4, reflect_ids4, by = "num")
-
-lichen_spectra_all = rbind(lichen_spectra1,
-                           lichen_spectra2,
-                           lichen_spectra3,
-                           lichen_spectra4) |>
+lichen_spectra = merge(lichen_spectra, reflect_ids, by = c("num", "Folder"))
+lichen_spectra = lichen_spectra |>
     dplyr::rename(wavelength = V1,
                   reflectance = V2) |>
-    dplyr::mutate(sample_state = paste(sample, State, sep="_"))
+    dplyr::mutate(sample_state = paste(sample, State, sep="_")) |>
+    dplyr::select(-c("1","2", "3"))
 
-str(lichen_spectra_all)
 # take mean of all three spectra per specimen
-lichen_spectra_sum = lichen_spectra_all |>
+lichen_spectra_sum = lichen_spectra |>
     dplyr::group_by(sample_state, wavelength) |>
     dplyr::summarise(mean_reflectance = mean(reflectance), across())
 
@@ -135,12 +83,6 @@ lichen_spectra_sum = lichen_spectra_sum |>
                                     "state"), sep = "_",
              remove = F) |>
     dplyr::mutate(sample = substr(sample_state, 1, nchar(sample_state)-4))
-lichen_spectra_sum$species = replace(lichen_spectra_sum$species, 
-                                     lichen_spectra_sum$species == "flasor",
-                                     "Flavopunctelia soredica")
-lichen_spectra_sum$species = replace(lichen_spectra_sum$species, 
-                                     lichen_spectra_sum$species == "parsul",
-                                     "Parmelia sulcata")
 
 spectra_plot = ggplot(data = lichen_spectra_sum,
                       mapping = aes(x = wavelength_int,
@@ -163,15 +105,16 @@ filelist_CH = list.files(path = "lfe_data/functional_traits/Nanodrop/CH", patter
 filelist_CH = paste0("lfe_data/functional_traits/Nanodrop/CH/", filelist_CH)
 filelist_CH
 
-filelist_SM = list.files(path = "lfe_data/functional_traits/Nanodrop/SM", pattern = "*.tsv")
-filelist_SM = paste0("lfe_data/functional_traits/Nanodrop/SM/", filelist_SM)
+filelist_SM = list.files(path = "lfe_data/functional_traits/Nanodrop/SM/new", pattern = "*.tsv")
+filelist_SM = paste0("lfe_data/functional_traits/Nanodrop/SM/new/", filelist_SM)
 filelist_SM
 
 # Chlorophyll
-datalist = lapply(filelist_CH, function(x)as.data.frame(fread(x, header=T, sep = "\t")))
-CH = do.call("full_join", datalist)
+CH = lapply(filelist_CH, function(x)as.data.frame(fread(x, header=T, sep = "\t"))) |>
+    reduce(full_join, by = NULL)
 names(CH)[6] = "666"
 CH = CH[ -c(3,5) ]
+
 
 CH = pivot_longer(CH, cols = c(4:ncol(CH)),
                                     names_to = "wavelength",
@@ -208,8 +151,8 @@ ggsave("lfe_objects/functional_traits/CH_plot.jpeg", plot = CH_plot,
        dpi = 600, width = 7, height = 5, units = "in")
 
 # Secondary Metabolites
-datalist = lapply(filelist_SM, function(x)as.data.frame(fread(x, header=T, sep = "\t")))
-SM = do.call("full_join", datalist)
+SM = lapply(filelist_SM, function(x)as.data.frame(fread(x, header=T, sep = "\t"))) |>
+    reduce(full_join, by = NULL)
 names(SM)[6] = "290"
 SM = SM[ -c(3,5) ]
 
@@ -223,7 +166,11 @@ SM = SM |>
     dplyr::filter(wavelength > 260 &
                       wavelength < 400) |>
     separate(col = sample, into = c("species","plot", "collection"), 
-             sep = "_", remove = F)
+             sep = "_", remove = T)
+SM$species = ifelse(SM$species == "mansax", "monsax", SM$species)
+SM$sample = paste0(tolower(substr(SM$species,1,6)), 
+                    "_",
+                            SM$plot, "_", SM$collection)
 
 SM_plot = ggplot(data = SM, 
                  mapping = aes(x = wavelength,
@@ -253,24 +200,90 @@ water$sample = paste0(tolower(substr(water$species,1,3)),
 water$STM = water$Dry_Weight / water$Area_mm2    
 water$WHC = (((water$Wet_Weight - water$Dry_Weight) / water$Dry_Weight) * 100)
 
+
 STM_plot = ggplot(data = water,
-       mapping = aes(x = species,
-                     y = STM)) +
+                  mapping = aes(x = species,
+                                y = STM)) +
     geom_boxplot() +
     theme_minimal()
+STM_plot
 
 WHC_plot = ggplot(data = water,
-       mapping = aes(x = species,
-                     y = WHC)) +
+                  mapping = aes(x = species,
+                                y = WHC)) +
     geom_boxplot() +
     theme_minimal()
-
+WHC_plot
 
 ggsave("lfe_objects/functional_traits/STM.jpeg", plot = STM_plot,
        dpi = 600, width = 7, height = 5, units = "in")
 
 ggsave("lfe_objects/functional_traits/WHC.jpeg", plot = WHC_plot,
        dpi = 600, width = 7, height = 5, units = "in")
+
+##### Drying Curves #####
+
+
+# add columns needed later
+water$ww = water$Wet_Weight
+
+
+# pivot longer
+water_pivot = pivot_longer(water, cols = c(9:20),
+                           names_to = "time",
+                           values_to = "weight")
+
+# rename time column values to numbers
+water_pivot$time = ifelse(water_pivot$time == "Wet_Weight", 0,
+                ifelse(water_pivot$time == "X3_Min", 3,
+                ifelse(water_pivot$time == "X6_Min", 6,
+                ifelse(water_pivot$time == "X9_Min", 9,
+                ifelse(water_pivot$time == "X12_Min", 12,
+                ifelse(water_pivot$time == "X15_Min", 15,
+                ifelse(water_pivot$time == "X18_Min", 18,
+                ifelse(water_pivot$time == "X21_Min", 21,
+                ifelse(water_pivot$time == "X24_Min", 24,
+                ifelse(water_pivot$time == "X27_Min", 27,
+                ifelse(water_pivot$time == "X30_Min", 30,
+                ifelse(water_pivot$time == "X33_Min", 33,
+                NA))))))))))))
+str(water_pivot)
+
+# add relative water content
+water_pivot$RWC = (water_pivot$weight - water_pivot$Dry_Weight) /
+                    (water_pivot$ww - water_pivot$Dry_Weight) * 100
+
+# plot
+drying_curves = ggplot(data = water_pivot,
+                       mapping = aes(x = time,
+                                     y = RWC,
+                                     color = species)) +
+    geom_jitter(width = .4) +
+    #geom_line(mapping = aes(group = sample)) +
+    geom_smooth() +
+    theme_minimal() +
+    ylim(0, 100)
+
+drying_curves
+
+ggsave("lfe_objects/functional_traits/dry_curve.jpeg", plot = drying_curves,
+       dpi = 600, width = 10, height = 5, units = "in")
+
+# save dataframe
+write.csv(water_pivot, "lfe_objects/functional_traits/drying_curves.csv")
+
+# calculate water loss per time
+water$W9 = (((water$X9_Min - water$Dry_Weight) / water$Dry_Weight) / 
+                water$WHC) * 
+                100
+
+water$WL = (1 - water$W9) / 9
+
+ggplot(data = water,
+       mapping = aes(x = species,
+                     y = WL)) +
+    geom_boxplot()
+
 ## Cross Sections
 
 CS = read.csv("lfe_data/functional_traits/cross_sections.csv") |>
@@ -306,6 +319,7 @@ CS_plot = ggplot(data = CS_sum,
                      color = species)) +
     geom_boxplot() +
     theme_bw()
+CS_plot
 
 ggsave("lfe_objects/functional_traits/CS_plot.jpeg", plot = CS_plot,
        dpi = 600, width = 7, height = 5, units = "in")
@@ -320,9 +334,12 @@ plot_chars = read.csv("lfe_objects/OSMP_plots/plot_chars_full.csv")
 
 ## load in collection dataset
 species_list = c("Flavopunctelia soredica",
-                 "Parmelia sulcata")
+                 "Parmelia sulcata",
+                 "Montanelia saximontana",
+                 "Umbilicaria americana",
+                 "Umbilicaria hyperborea")
 
-collections = read.csv("lfe_data/OSMP_plots/plot_collections_2_26_24.csv") |>
+collections = read.csv("lfe_data/OSMP_plots/plot_collections_3_15_24.csv") |>
     dplyr::mutate(species = paste(Genus, Specific.Epithet)) |>
     dplyr::filter(species %in% species_list) |>
     dplyr::rename(plot = Plot,
@@ -411,13 +428,6 @@ CH_sum = CH |>
                   CH = (7.49 * A665) + (20.34 * A648)) |>
     dplyr::ungroup()
 
-# need to figure out how I'm going to account for incomplete acetone washing of lichen thalli...
-# cant just take mean of CH and SM measurements
-# parmelia sulcata has lower PQ values (more CH degradation) and 
-# higher UV absorbance values after washing...
-# take the higher value of the two?
-
-
 ## Merge all datasets!
 
 # add chlorophyll dataset
@@ -426,9 +436,10 @@ ft_plot = merge(plot_chars |>
 
 # Secondary metabolites
 ft_plot = merge(ft_plot, SM_sum |>
-                    dplyr::select(!c(species, collection)))
+                    dplyr::select(!c(species, collection)),
+                by = "sample")
 
-# add mean UV_abs value
+# add mean UV_abs value from chlorophyll and SM measurements
 ft_plot$mean_UV_abs = (ft_plot$UV_abs + ft_plot$CH_UV_abs) / 2
 
 # spectral indices
@@ -460,6 +471,16 @@ ft_plot = merge(ft_plot, collections |>
                                      species)),
                 by = "sample")
 ft_plot$coll_northing = as.numeric(lapply(ft_plot$Aspect.y, northing))
+
+# divide chlorophyll and SM by weight and area!
+ft_plot$CH_area = ft_plot$CH / ft_plot$Area_mm2
+ft_plot$CH_weight = ft_plot$CH / ft_plot$Dry_Weight
+
+ft_plot$SM_area = ft_plot$UV_abs / ft_plot$Area_mm2
+ft_plot$SM_weight = ft_plot$UV_abs / ft_plot$Dry_Weight
+
+ft_plot$mean_SM_area = ft_plot$mean_UV_abs / ft_plot$Area_mm2
+ft_plot$mean_SM_weight = ft_plot$mean_UV_abs / ft_plot$Dry_Weight
 
 # save processed dataset
 write.csv(ft_plot, "lfe_objects/functional_traits/ft_plot.csv")
